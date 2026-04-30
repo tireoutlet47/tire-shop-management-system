@@ -1,0 +1,1526 @@
+openapi: 3.0.0
+info:
+  title: Tire Shop Management System API
+  description: Complete RESTful API for tire shop operations management
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: api@tireshop.local
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Development server
+  - url: https://api.tireshop.com/v1
+    description: Production server
+
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Invalid input
+        '409':
+          description: Email already exists
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Logout user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout successful
+        '401':
+          description: Unauthorized
+
+  /customers:
+    get:
+      tags:
+        - Customers
+      summary: List all customers with pagination
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: search
+          in: query
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of customers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerList'
+
+    post:
+      tags:
+        - Customers
+      summary: Create new customer
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCustomerRequest'
+      responses:
+        '201':
+          description: Customer created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+
+  /customers/{customerId}:
+    get:
+      tags:
+        - Customers
+      summary: Get customer by ID
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Customer details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '404':
+          description: Customer not found
+
+    put:
+      tags:
+        - Customers
+      summary: Update customer
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCustomerRequest'
+      responses:
+        '200':
+          description: Customer updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+
+    delete:
+      tags:
+        - Customers
+      summary: Delete customer
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Customer deleted
+
+  /vehicles:
+    post:
+      tags:
+        - Vehicles
+      summary: Add new vehicle
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateVehicleRequest'
+      responses:
+        '201':
+          description: Vehicle created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+
+  /vehicles/{vehicleId}:
+    get:
+      tags:
+        - Vehicles
+      summary: Get vehicle details
+      parameters:
+        - name: vehicleId
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Vehicle details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+        '404':
+          description: Vehicle not found
+
+    put:
+      tags:
+        - Vehicles
+      summary: Update vehicle
+      parameters:
+        - name: vehicleId
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateVehicleRequest'
+      responses:
+        '200':
+          description: Vehicle updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+
+  /vehicles/vin/{vin}:
+    get:
+      tags:
+        - Vehicles
+      summary: Lookup vehicle specifications by VIN
+      parameters:
+        - name: vin
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Vehicle specifications
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VINLookupResult'
+        '404':
+          description: VIN not found
+
+  /inventory:
+    get:
+      tags:
+        - Inventory
+      summary: List inventory items
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [tire, oil, filter, part, other]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of inventory items
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryList'
+
+    post:
+      tags:
+        - Inventory
+      summary: Add inventory item
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInventoryRequest'
+      responses:
+        '201':
+          description: Inventory item created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItem'
+
+  /inventory/{itemId}:
+    get:
+      tags:
+        - Inventory
+      summary: Get inventory item details
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Inventory item details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItem'
+        '404':
+          description: Item not found
+
+    put:
+      tags:
+        - Inventory
+      summary: Update inventory item
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateInventoryRequest'
+      responses:
+        '200':
+          description: Item updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItem'
+
+  /inventory/{itemId}/adjust:
+    post:
+      tags:
+        - Inventory
+      summary: Adjust inventory quantity
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdjustInventoryRequest'
+      responses:
+        '200':
+          description: Inventory adjusted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItem'
+
+  /services:
+    get:
+      tags:
+        - Services
+      summary: List all services
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of services
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceList'
+
+    post:
+      tags:
+        - Services
+      summary: Create new service
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateServiceRequest'
+      responses:
+        '201':
+          description: Service created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Service'
+
+  /services/{serviceId}:
+    get:
+      tags:
+        - Services
+      summary: Get service details
+      parameters:
+        - name: serviceId
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Service details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Service'
+
+    put:
+      tags:
+        - Services
+      summary: Update service status
+      parameters:
+        - name: serviceId
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateServiceRequest'
+      responses:
+        '200':
+          description: Service updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Service'
+
+  /services/{serviceId}/photos:
+    post:
+      tags:
+        - Services
+      summary: Upload service photos
+      parameters:
+        - name: serviceId
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                photoType:
+                  type: string
+                  enum: [before, during, after]
+      responses:
+        '201':
+          description: Photos uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  photos:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ServicePhoto'
+
+  /invoices:
+    get:
+      tags:
+        - Invoices
+      summary: List all invoices
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of invoices
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceList'
+
+    post:
+      tags:
+        - Invoices
+      summary: Create invoice from service
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInvoiceRequest'
+      responses:
+        '201':
+          description: Invoice created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+
+  /invoices/{invoiceId}:
+    get:
+      tags:
+        - Invoices
+      summary: Get invoice details
+      parameters:
+        - name: invoiceId
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Invoice details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+
+  /invoices/{invoiceId}/payment:
+    post:
+      tags:
+        - Invoices
+      summary: Record payment for invoice
+      parameters:
+        - name: invoiceId
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecordPaymentRequest'
+      responses:
+        '200':
+          description: Payment recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+
+  /locations:
+    post:
+      tags:
+        - Locations
+      summary: Update technician location (real-time GPS)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocationUpdate'
+      responses:
+        '200':
+          description: Location updated
+
+  /locations/{serviceId}:
+    get:
+      tags:
+        - Locations
+      summary: Get current technician location for service
+      parameters:
+        - name: serviceId
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Technician location
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TechnicianLocation'
+
+  /rotations:
+    get:
+      tags:
+        - Rotations
+      summary: List rotation tracking records
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [due, pending, completed]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of rotation records
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RotationList'
+
+  /notifications/sms:
+    post:
+      tags:
+        - Notifications
+      summary: Send SMS notification to customer
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendSMSRequest'
+      responses:
+        '200':
+          description: SMS sent successfully
+
+  /analytics/dashboard:
+    get:
+      tags:
+        - Analytics
+      summary: Get dashboard metrics
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Dashboard metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardMetrics'
+
+  /analytics/sales:
+    get:
+      tags:
+        - Analytics
+      summary: Get sales report
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: groupBy
+          in: query
+          schema:
+            type: string
+            enum: [day, week, month, service]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Sales report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesReport'
+
+  /analytics/customers:
+    get:
+      tags:
+        - Analytics
+      summary: Get customer analytics
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Customer analytics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerAnalytics'
+
+  /analytics/technicians:
+    get:
+      tags:
+        - Analytics
+      summary: Get technician performance metrics
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Technician metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TechnicianMetrics'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+        - name
+        - role
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        name:
+          type: string
+        role:
+          type: string
+          enum: [admin, manager, technician, customer, receptionist]
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateCustomerRequest:
+      type: object
+      required:
+        - name
+        - phone
+        - email
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        zipCode:
+          type: string
+
+    UpdateCustomerRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        zipCode:
+          type: string
+
+    Customer:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        zipCode:
+          type: string
+        loyaltyPoints:
+          type: number
+        totalSpent:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CustomerList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Customer'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    CreateVehicleRequest:
+      type: object
+      required:
+        - customerId
+        - vin
+      properties:
+        customerId:
+          type: string
+        vin:
+          type: string
+        licensePlate:
+          type: string
+        year:
+          type: integer
+        make:
+          type: string
+        model:
+          type: string
+        color:
+          type: string
+        mileage:
+          type: integer
+
+    UpdateVehicleRequest:
+      type: object
+      properties:
+        licensePlate:
+          type: string
+        mileage:
+          type: integer
+        color:
+          type: string
+
+    Vehicle:
+      type: object
+      properties:
+        id:
+          type: string
+        customerId:
+          type: string
+        vin:
+          type: string
+        licensePlate:
+          type: string
+        year:
+          type: integer
+        make:
+          type: string
+        model:
+          type: string
+        color:
+          type: string
+        mileage:
+          type: integer
+        oilType:
+          type: string
+        oilCapacity:
+          type: number
+        filterPartNumber:
+          type: string
+        lastRotationDate:
+          type: string
+          format: date
+        lastRotationMiles:
+          type: integer
+        nextRotationDueMiles:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    VINLookupResult:
+      type: object
+      properties:
+        vin:
+          type: string
+        year:
+          type: integer
+        make:
+          type: string
+        model:
+          type: string
+        engineType:
+          type: string
+        engineDisplacement:
+          type: string
+        oilType:
+          type: string
+        oilCapacity:
+          type: number
+        filterPartNumber:
+          type: string
+        filterSize:
+          type: string
+
+    CreateInventoryRequest:
+      type: object
+      required:
+        - name
+        - category
+        - quantity
+        - unitCost
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+          enum: [tire, oil, filter, part, other]
+        quantity:
+          type: integer
+        unitCost:
+          type: number
+        sellingPrice:
+          type: number
+        supplier:
+          type: string
+        sku:
+          type: string
+        reorderLevel:
+          type: integer
+        specifications:
+          type: object
+
+    UpdateInventoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        quantity:
+          type: integer
+        unitCost:
+          type: number
+        sellingPrice:
+          type: number
+        reorderLevel:
+          type: integer
+
+    AdjustInventoryRequest:
+      type: object
+      required:
+        - quantity
+        - reason
+      properties:
+        quantity:
+          type: integer
+        reason:
+          type: string
+          enum: [received, damaged, lost, sold, returned, other]
+        notes:
+          type: string
+
+    InventoryItem:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        category:
+          type: string
+        quantity:
+          type: integer
+        unitCost:
+          type: number
+        sellingPrice:
+          type: number
+        supplier:
+          type: string
+        sku:
+          type: string
+        reorderLevel:
+          type: integer
+        specifications:
+          type: object
+        createdAt:
+          type: string
+          format: date-time
+
+    InventoryList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/InventoryItem'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    CreateServiceRequest:
+      type: object
+      required:
+        - customerId
+        - vehicleId
+        - serviceType
+      properties:
+        customerId:
+          type: string
+        vehicleId:
+          type: string
+        serviceType:
+          type: string
+        description:
+          type: string
+        technicianId:
+          type: string
+        scheduledDate:
+          type: string
+          format: date-time
+        estimatedCost:
+          type: number
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              inventoryId:
+                type: string
+              quantity:
+                type: integer
+
+    UpdateServiceRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending, scheduled, in-progress, completed, invoiced, paid]
+        technicianId:
+          type: string
+        notes:
+          type: string
+        completionTime:
+          type: string
+          format: date-time
+
+    Service:
+      type: object
+      properties:
+        id:
+          type: string
+        customerId:
+          type: string
+        vehicleId:
+          type: string
+        serviceNumber:
+          type: string
+        serviceType:
+          type: string
+        status:
+          type: string
+        description:
+          type: string
+        technicianId:
+          type: string
+        scheduledDate:
+          type: string
+          format: date-time
+        startTime:
+          type: string
+          format: date-time
+        completionTime:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            type: object
+        actualCost:
+          type: number
+        notes:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    ServicePhoto:
+      type: object
+      properties:
+        id:
+          type: string
+        serviceId:
+          type: string
+        photoType:
+          type: string
+          enum: [before, during, after]
+        url:
+          type: string
+        uploadedAt:
+          type: string
+          format: date-time
+
+    ServiceList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Service'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    CreateInvoiceRequest:
+      type: object
+      required:
+        - serviceId
+      properties:
+        serviceId:
+          type: string
+        discount:
+          type: number
+        taxRate:
+          type: number
+        notes:
+          type: string
+
+    RecordPaymentRequest:
+      type: object
+      required:
+        - amount
+        - paymentMethod
+      properties:
+        amount:
+          type: number
+        paymentMethod:
+          type: string
+          enum: [cash, credit_card, debit_card, check, account]
+        transactionId:
+          type: string
+        notes:
+          type: string
+
+    Invoice:
+      type: object
+      properties:
+        id:
+          type: string
+        invoiceNumber:
+          type: string
+        customerId:
+          type: string
+        serviceId:
+          type: string
+        items:
+          type: array
+          items:
+            type: object
+        subtotal:
+          type: number
+        discount:
+          type: number
+        tax:
+          type: number
+        total:
+          type: number
+        status:
+          type: string
+          enum: [draft, pending, paid, overdue, cancelled]
+        issuedDate:
+          type: string
+          format: date
+        dueDate:
+          type: string
+          format: date
+        paidDate:
+          type: string
+          format: date
+        createdAt:
+          type: string
+          format: date-time
+
+    InvoiceList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Invoice'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    LocationUpdate:
+      type: object
+      required:
+        - latitude
+        - longitude
+      properties:
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        serviceId:
+          type: string
+        accuracy:
+          type: number
+
+    TechnicianLocation:
+      type: object
+      properties:
+        technicianId:
+          type: string
+        serviceId:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        timestamp:
+          type: string
+          format: date-time
+        accuracy:
+          type: number
+
+    RotationList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              vehicleId:
+                type: string
+              customerId:
+                type: string
+              lastRotationDate:
+                type: string
+                format: date
+              lastRotationMiles:
+                type: integer
+              nextRotationDueMiles:
+                type: integer
+              status:
+                type: string
+              createdAt:
+                type: string
+                format: date-time
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    SendSMSRequest:
+      type: object
+      required:
+        - customerId
+        - message
+      properties:
+        customerId:
+          type: string
+        message:
+          type: string
+        scheduledTime:
+          type: string
+          format: date-time
+
+    DashboardMetrics:
+      type: object
+      properties:
+        todayRevenue:
+          type: number
+        servicesCompleted:
+          type: integer
+        activeTechnicians:
+          type: integer
+        pendingInvoices:
+          type: number
+        inventoryWarnings:
+          type: integer
+        newCustomers:
+          type: integer
+
+    SalesReport:
+      type: object
+      properties:
+        period:
+          type: object
+          properties:
+            startDate:
+              type: string
+              format: date
+            endDate:
+              type: string
+              format: date
+        totalRevenue:
+          type: number
+        totalServices:
+          type: integer
+        averageServiceValue:
+          type: number
+        data:
+          type: array
+          items:
+            type: object
+
+    CustomerAnalytics:
+      type: object
+      properties:
+        totalCustomers:
+          type: integer
+        newCustomersThisMonth:
+          type: integer
+        retentionRate:
+          type: number
+        averageCustomerValue:
+          type: number
+        topCustomers:
+          type: array
+          items:
+            type: object
+
+    TechnicianMetrics:
+      type: object
+      properties:
+        technicians:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              servicesCompleted:
+                type: integer
+              averageServiceTime:
+                type: number
+              revenue:
+                type: number
+              rating:
+                type: number
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        pages:
+          type: integer
+
+tags:
+  - name: Authentication
+    description: User authentication endpoints
+  - name: Customers
+    description: Customer management endpoints
+  - name: Vehicles
+    description: Vehicle management endpoints
+  - name: Inventory
+    description: Inventory management endpoints
+  - name: Services
+    description: Service management endpoints
+  - name: Invoices
+    description: Invoice and billing endpoints
+  - name: Locations
+    description: Real-time GPS location tracking
+  - name: Rotations
+    description: Tire rotation loyalty program
+  - name: Notifications
+    description: SMS and email notifications
+  - name: Analytics
+    description: Reports and analytics endpoints
